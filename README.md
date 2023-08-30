@@ -7,7 +7,7 @@ from qiskit.quantum_info import SparsePauliOp
 from qiskit.primitives import Estimator
 from qiskit.circuit.library import RealAmplitudes
 from qiskit.algorithms.optimizers import SPSA
-from qiskit.algorithms.eigensolvers import SSVQE
+from ssvqe import SSVQE
 
 operator = SparsePauliOp(['ZZ'])
 input_states = [QuantumCircuit(2), QuantumCircuit(2)]
