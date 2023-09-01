@@ -20,7 +20,6 @@ import numpy as np
 from ddt import data, ddt
 
 from qiskit import QuantumCircuit
-from ssvqe import SSVQE
 from qiskit.algorithms import AlgorithmError
 from qiskit.algorithms.optimizers import (
     COBYLA,
@@ -40,6 +39,8 @@ from qiskit.primitives import Sampler, Estimator
 from qiskit.algorithms.state_fidelities import ComputeUncompute
 from qiskit.utils import algorithm_globals
 from qiskit.quantum_info.operators import Operator
+
+from ssvqe import SSVQE
 
 # pylint: disable=invalid-name
 def _mock_optimizer(fun, x0, jac=None, bounds=None, inputs=None) -> OptimizerResult:
