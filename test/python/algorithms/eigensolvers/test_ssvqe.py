@@ -123,7 +123,9 @@ class TestSSVQE(QiskitAlgorithmsTestCase):
         """Ensuring circuit and operator mismatch is caught"""
         wavefunction = QuantumCircuit(1)
         optimizer = SLSQP(maxiter=50)
-        ssvqe = SSVQE(estimator=self.estimator, k=1, ansatz=wavefunction, optimizer=optimizer)
+        ssvqe = SSVQE(
+            estimator=self.estimator, k=1, ansatz=wavefunction, optimizer=optimizer
+        )
         with self.assertRaises(AlgorithmError):
             _ = ssvqe.compute_eigenvalues(operator=op)
 
@@ -147,7 +149,9 @@ class TestSSVQE(QiskitAlgorithmsTestCase):
     def test_mismatching_weights(self, op):
         """Ensuring incorrect number of weights is caught"""
         optimizer = SLSQP(maxiter=50)
-        ssvqe = SSVQE(estimator=self.estimator, k=2, weight_vector=[3, 2, 1], optimizer=optimizer)
+        ssvqe = SSVQE(
+            estimator=self.estimator, k=2, weight_vector=[3, 2, 1], optimizer=optimizer
+        )
         with self.assertRaises(AlgorithmError):
             _ = ssvqe.compute_eigenvalues(operator=op)
 
@@ -159,7 +163,10 @@ class TestSSVQE(QiskitAlgorithmsTestCase):
         initial_states[1].x(0)
         optimizer = SLSQP(maxiter=50)
         ssvqe = SSVQE(
-            estimator=self.estimator, k=1, optimizer=optimizer, initial_states=initial_states
+            estimator=self.estimator,
+            k=1,
+            optimizer=optimizer,
+            initial_states=initial_states,
         )
         with self.assertRaises(AlgorithmError):
             _ = ssvqe.compute_eigenvalues(operator=op)
@@ -175,7 +182,12 @@ class TestSSVQE(QiskitAlgorithmsTestCase):
     @data(H2_PAULI, H2_OP)
     def test_callback(self, op):
         """Test the callback on SSVQE."""
-        history = {"eval_count": [], "parameters": [], "mean_energies": [], "metadata": []}
+        history = {
+            "eval_count": [],
+            "parameters": [],
+            "mean_energies": [],
+            "metadata": [],
+        }
 
         def store_intermediate_result(eval_count, parameters, mean, metadata):
             history["eval_count"].append(eval_count)
@@ -204,7 +216,9 @@ class TestSSVQE(QiskitAlgorithmsTestCase):
                 for mean in mean_list
             )
         )
-        self.assertTrue(all(isinstance(metadata, dict) for metadata in history["metadata"]))
+        self.assertTrue(
+            all(isinstance(metadata, dict) for metadata in history["metadata"])
+        )
         for params in history["parameters"]:
             self.assertTrue(all(isinstance(param, float) for param in params))
 
@@ -212,13 +226,18 @@ class TestSSVQE(QiskitAlgorithmsTestCase):
         ref_mean = [[-1.07, -1.44], [-1.45, -1.06], [-1.37, -0.94]]
 
         np.testing.assert_array_equal(history["eval_count"], ref_eval_count)
-        np.testing.assert_array_almost_equal(history["mean_energies"], ref_mean, decimal=2)
+        np.testing.assert_array_almost_equal(
+            history["mean_energies"], ref_mean, decimal=2
+        )
 
     @data(H2_PAULI, H2_OP)
     def test_ssvqe_optimizer(self, op):
         """Test running same SSVQE twice to re-use optimizer, then switch optimizer"""
         ssvqe = SSVQE(
-            estimator=self.estimator, ansatz=RealAmplitudes(reps=6), optimizer=SLSQP(), k=2
+            estimator=self.estimator,
+            ansatz=RealAmplitudes(reps=6),
+            optimizer=SLSQP(),
+            k=2,
         )
 
         def run_check():
@@ -240,7 +259,9 @@ class TestSSVQE(QiskitAlgorithmsTestCase):
     def test_aux_operators_list(self, op):
         """Test list-based aux_operators."""
         wavefunction = self.ry_wavefunction
-        ssvqe = SSVQE(estimator=self.estimator, ansatz=wavefunction, optimizer=SLSQP(), k=2)
+        ssvqe = SSVQE(
+            estimator=self.estimator, ansatz=wavefunction, optimizer=SLSQP(), k=2
+        )
 
         # Start with an empty list
         result = ssvqe.compute_eigenvalues(op, aux_operators=[])
@@ -251,7 +272,9 @@ class TestSSVQE(QiskitAlgorithmsTestCase):
 
         # Go again with two auxiliary operators
         aux_op1 = SparsePauliOp.from_list([("II", 2.0)])
-        aux_op2 = SparsePauliOp.from_list([("II", 0.5), ("ZZ", 0.5), ("YY", 0.5), ("XX", -0.5)])
+        aux_op2 = SparsePauliOp.from_list(
+            [("II", 0.5), ("ZZ", 0.5), ("YY", 0.5), ("XX", -0.5)]
+        )
         aux_ops = [aux_op1, aux_op2]
         result = ssvqe.compute_eigenvalues(op, aux_operators=aux_ops)
         np.testing.assert_array_almost_equal(
@@ -297,7 +320,9 @@ class TestSSVQE(QiskitAlgorithmsTestCase):
 
         # Go again with two auxiliary operators
         aux_op1 = SparsePauliOp.from_list([("II", 2.0)])
-        aux_op2 = SparsePauliOp.from_list([("II", 0.5), ("ZZ", 0.5), ("YY", 0.5), ("XX", -0.5)])
+        aux_op2 = SparsePauliOp.from_list(
+            [("II", 0.5), ("ZZ", 0.5), ("YY", 0.5), ("XX", -0.5)]
+        )
         aux_ops = {"aux_op1": aux_op1, "aux_op2": aux_op2}
         result = ssvqe.compute_eigenvalues(op, aux_operators=aux_ops)
         self.assertEqual(len(result.eigenvalues), 2)
@@ -306,8 +331,12 @@ class TestSSVQE(QiskitAlgorithmsTestCase):
         self.assertEqual(len(result.aux_operators_evaluated), 2)
         self.assertEqual(len(result.aux_operators_evaluated[0]), 2)
         # expectation values
-        self.assertAlmostEqual(result.aux_operators_evaluated[0]["aux_op1"][0], 2, places=6)
-        self.assertAlmostEqual(result.aux_operators_evaluated[0]["aux_op2"][0], 0, places=1)
+        self.assertAlmostEqual(
+            result.aux_operators_evaluated[0]["aux_op1"][0], 2, places=6
+        )
+        self.assertAlmostEqual(
+            result.aux_operators_evaluated[0]["aux_op2"][0], 0, places=1
+        )
         # metadata
         self.assertIsInstance(result.aux_operators_evaluated[0]["aux_op1"][1], dict)
         self.assertIsInstance(result.aux_operators_evaluated[0]["aux_op2"][1], dict)
@@ -321,14 +350,20 @@ class TestSSVQE(QiskitAlgorithmsTestCase):
         self.assertEqual(len(result.aux_operators_evaluated), 2)
         self.assertEqual(len(result.aux_operators_evaluated[0]), 3)
         # expectation values
-        self.assertAlmostEqual(result.aux_operators_evaluated[0]["aux_op1"][0], 2, places=6)
-        self.assertAlmostEqual(result.aux_operators_evaluated[0]["aux_op2"][0], 0.0, places=2)
+        self.assertAlmostEqual(
+            result.aux_operators_evaluated[0]["aux_op1"][0], 2, places=6
+        )
+        self.assertAlmostEqual(
+            result.aux_operators_evaluated[0]["aux_op2"][0], 0.0, places=2
+        )
         self.assertEqual(result.aux_operators_evaluated[0]["zero_operator"][0], 0.0)
         self.assertTrue("None_operator" not in result.aux_operators_evaluated[0].keys())
         # metadata
         self.assertIsInstance(result.aux_operators_evaluated[0]["aux_op1"][1], dict)
         self.assertIsInstance(result.aux_operators_evaluated[0]["aux_op2"][1], dict)
-        self.assertIsInstance(result.aux_operators_evaluated[0]["zero_operator"][1], dict)
+        self.assertIsInstance(
+            result.aux_operators_evaluated[0]["zero_operator"][1], dict
+        )
 
     @data(H2_PAULI, H2_OP)
     def test_aux_operator_std_dev(self, op):
@@ -352,7 +387,9 @@ class TestSSVQE(QiskitAlgorithmsTestCase):
 
         # Go again with two auxiliary operators
         aux_op1 = SparsePauliOp.from_list([("II", 2.0)])
-        aux_op2 = SparsePauliOp.from_list([("II", 0.5), ("ZZ", 0.5), ("YY", 0.5), ("XX", -0.5)])
+        aux_op2 = SparsePauliOp.from_list(
+            [("II", 0.5), ("ZZ", 0.5), ("YY", 0.5), ("XX", -0.5)]
+        )
         aux_ops = [aux_op1, aux_op2]
         result = ssvqe.compute_eigenvalues(op, aux_operators=aux_ops)
         self.assertEqual(len(result.aux_operators_evaluated), 2)

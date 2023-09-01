@@ -36,7 +36,10 @@ from qiskit.quantum_info import Statevector
 from qiskit.algorithms.exceptions import AlgorithmError
 from qiskit.algorithms.list_or_dict import ListOrDict
 from qiskit.algorithms.optimizers import Optimizer, Minimizer, OptimizerResult
-from qiskit.algorithms.variational_algorithm import VariationalAlgorithm, VariationalResult
+from qiskit.algorithms.variational_algorithm import (
+    VariationalAlgorithm,
+    VariationalResult,
+)
 from qiskit.algorithms.eigensolvers import Eigensolver, EigensolverResult
 
 from qiskit.algorithms.observables_evaluator import estimate_observables
@@ -53,14 +56,8 @@ class SSVQE(VariationalAlgorithm, Eigensolver):
     value of :math:`H` with respect to the ansatz state, SSVQE takes a set
     of mutually orthogonal input states :math:`\{| \psi_{i}} \rangle\}_{i=0}^{k-1}`,
     applies the same parameterized ansatz circuit :math:`U(\vec\theta)` to all of them,
-    then minimizes a weighted sum of the expectation values of :math:`H` with respect to these states:
-
-    .. math::
-
-        \min_{\vec\theta}\sum_{i=0}^{k-1} w_{i}\langle\psi_{i}(\vec\theta)|H|\psi{i}(\vec\theta)\rangle
-
-    where :math:`|\psi{i} (\vec\theta)\rangle` is shorthand for :math:`U (\vec\theta)| \psi_{i} \rangle`
-    and :math:`\{ w_{i} \}_{i=0}^{k-1}` are the components of the ``weight_vector``.
+    then minimizes a weighted sum of the expectation values of :math:`H` with respect
+    to these states.
 
     An instance of SSVQE requires defining four algorithmic sub-components:
 
@@ -134,10 +131,10 @@ class SSVQE(VariationalAlgorithm, Eigensolver):
             ansatz (QuantumCircuit): A parameterized circuit used as an ansatz for the
                 wave function.
             optimizer (Optimizer): A classical optimizer, which can be either a Qiskit optimizer
-                or a callable that takes an array as input and returns a Qiskit or SciPy optimization
-                result.
-            gradient (BaseEstimatorGradient | None): An optional estimator gradient to be used with the
-                optimizer.
+                or a callable that takes an array as input and returns a Qiskit or SciPy
+                optimization result.
+            gradient (BaseEstimatorGradient | None): An optional estimator gradient to be used
+                with the optimizer.
             initial_states (Sequence[QuantumCircuit]): An optional list of mutually orthogonal
                 initial states. If ``None``, then SSVQE will set these to be a list of mutually
                 orthogonal computational basis states.
@@ -145,9 +142,9 @@ class SSVQE(VariationalAlgorithm, Eigensolver):
                 as weights to each of the expectation values. If ``None``, then SSVQE will default
                 to [k, k-1, ..., 1].
             callback (Callable[[int, np.ndarray, Sequence[float], dict[str, Any]], None] | None): A
-                function that can access the intermediate data at each optimization step. These data are
-                the evaluation count, the optimizer parameters for the ansatz, the evaluated mean
-                energies, and the metadata dictionary.
+                function that can access the intermediate data at each optimization step.
+                These data are the evaluation count, the optimizer parameters for
+                the ansatz, the evaluated mean energies, and the metadata dictionary.
             check_input_states_orthogonality: A boolean that sets whether or not to check
                 that the value of initial_states passed consists of a mutually orthogonal
                 set of states. If ``True``, then SSVQE will check that these states are mutually
@@ -166,7 +163,8 @@ class SSVQE(VariationalAlgorithm, Eigensolver):
         initial_states: list[QuantumCircuit] | None = None,
         weight_vector: Sequence[float] | Sequence[int] | None = None,
         gradient: BaseEstimatorGradient | None = None,
-        callback: Callable[[int, np.ndarray, Sequence[float], float], None] | None = None,
+        callback: Callable[[int, np.ndarray, Sequence[float], float], None]
+        | None = None,
         check_input_states_orthogonality: bool = True,
     ) -> None:
         """
@@ -235,11 +233,15 @@ class SSVQE(VariationalAlgorithm, Eigensolver):
 
         initial_point = _validate_initial_point(self.initial_point, ansatz)
 
-        initial_states = self._check_operator_initial_states(self.initial_states, operator)
+        initial_states = self._check_operator_initial_states(
+            self.initial_states, operator
+        )
 
         bounds = _validate_bounds(ansatz)
 
-        initialized_ansatz_list = [initial_states[n].compose(ansatz) for n in range(self.k)]
+        initialized_ansatz_list = [
+            initial_states[n].compose(ansatz) for n in range(self.k)
+        ]
 
         self.weight_vector = self._check_weight_vector(self.weight_vector)
 
@@ -248,7 +250,9 @@ class SSVQE(VariationalAlgorithm, Eigensolver):
         )
 
         if self.gradient is not None:  # need to implement _get_evaluate_gradient
-            evaluate_gradient = self._get_evalute_gradient(initialized_ansatz_list, operator)
+            evaluate_gradient = self._get_evalute_gradient(
+                initialized_ansatz_list, operator
+            )
         else:
             evaluate_gradient = None
 
@@ -315,7 +319,11 @@ class SSVQE(VariationalAlgorithm, Eigensolver):
             aux_values_list = None
 
         return self._build_ssvqe_result(
-            optimizer_result, aux_values_list, optimizer_time, operator, initialized_ansatz_list
+            optimizer_result,
+            aux_values_list,
+            optimizer_time,
+            operator,
+            initialized_ansatz_list,
         )
 
     def _get_evaluate_weighted_energy_sum(
@@ -348,7 +356,11 @@ class SSVQE(VariationalAlgorithm, Eigensolver):
 
             try:
                 job = self.estimator.run(
-                    [initialized_ansatz_list[m] for n in range(batchsize) for m in range(self.k)],
+                    [
+                        initialized_ansatz_list[m]
+                        for n in range(batchsize)
+                        for m in range(self.k)
+                    ],
                     [operator] * self.k * batchsize,
                     [parameters[n] for n in range(batchsize) for m in range(self.k)],
                 )
@@ -360,16 +372,22 @@ class SSVQE(VariationalAlgorithm, Eigensolver):
                 energies = energies.tolist()
 
             except Exception as exc:
-                raise AlgorithmError("The primitive job to evaluate the energy failed!") from exc
+                raise AlgorithmError(
+                    "The primitive job to evaluate the energy failed!"
+                ) from exc
 
             if self.callback is not None:
                 metadata = result.metadata
-                for params, energies_value, metadata in zip(parameters, energies, metadata):
+                for params, energies_value, metadata in zip(
+                    parameters, energies, metadata
+                ):
                     eval_count += 1
                     self.callback(eval_count, params, energies_value, metadata)
 
             return (
-                weighted_energy_sums[0] if len(weighted_energy_sums) == 1 else weighted_energy_sums
+                weighted_energy_sums[0]
+                if len(weighted_energy_sums) == 1
+                else weighted_energy_sums
             )
 
         return evaluate_weighted_energy_sum
@@ -403,14 +421,19 @@ class SSVQE(VariationalAlgorithm, Eigensolver):
                     [self.weight_vector[n] * energy_gradients[n] for n in range(self.k)]
                 )
             except Exception as exc:
-                raise AlgorithmError("The primitive job to evaluate the gradient failed!") from exc
+                raise AlgorithmError(
+                    "The primitive job to evaluate the gradient failed!"
+                ) from exc
 
             return weighted_energy_sum_gradient
 
         return evaluate_gradient
 
     def _check_circuit_num_qubits(
-        self, operator: BaseOperator | SparsePauliOp, circuit: QuantumCircuit, circuit_type: str
+        self,
+        operator: BaseOperator | SparsePauliOp,
+        circuit: QuantumCircuit,
+        circuit_type: str,
     ) -> QuantumCircuit:
         """Check that the number of qubits for the circuit passed matches
         the number of qubits  of the operator.
@@ -431,7 +454,9 @@ class SSVQE(VariationalAlgorithm, Eigensolver):
                 ) from error
         return circuit
 
-    def _check_operator_ansatz(self, operator: BaseOperator | SparsePauliOp) -> QuantumCircuit:
+    def _check_operator_ansatz(
+        self, operator: BaseOperator | SparsePauliOp
+    ) -> QuantumCircuit:
         """Check that the number of qubits of operator and ansatz match and that the ansatz is
         parameterized.
         """
@@ -446,20 +471,28 @@ class SSVQE(VariationalAlgorithm, Eigensolver):
         )
 
         if ansatz.num_parameters == 0:
-            raise AlgorithmError("The ansatz must be parameterized, but has no free parameters.")
+            raise AlgorithmError(
+                "The ansatz must be parameterized, but has no free parameters."
+            )
 
         return ansatz
 
     def _check_operator_initial_states(
-        self, list_of_states: list[QuantumCircuit] | None, operator: BaseOperator | SparsePauliOp
+        self,
+        list_of_states: list[QuantumCircuit] | None,
+        operator: BaseOperator | SparsePauliOp,
     ) -> QuantumCircuit:
 
         """Check that the number of qubits of operator and all the initial states match."""
 
         if list_of_states is None:
-            initial_states = [QuantumCircuit(operator.num_qubits) for n in range(self.k)]
+            initial_states = [
+                QuantumCircuit(operator.num_qubits) for n in range(self.k)
+            ]
             for n in range(self.k):
-                initial_states[n].initialize(Statevector.from_int(n, 2**operator.num_qubits))
+                initial_states[n].initialize(
+                    Statevector.from_int(n, 2**operator.num_qubits)
+                )
 
             warnings.warn(
                 "No initial states have been provided to SSVQE, so they have been set to "
@@ -474,7 +507,8 @@ class SSVQE(VariationalAlgorithm, Eigensolver):
                     [np.asarray(Statevector(state)) for state in initial_states]
                 )
                 if not np.isclose(
-                    stacked_states_array.transpose() @ stacked_states_array, np.eye(self.k)
+                    stacked_states_array.transpose() @ stacked_states_array,
+                    np.eye(self.k),
                 ):
                     raise AlgorithmError(
                         "The set of initial states provided is not mutually orthogonal."
@@ -540,18 +574,24 @@ class SSVQE(VariationalAlgorithm, Eigensolver):
         try:
             result.eigenvalues = (
                 self.estimator.run(
-                    initialized_ansatz_list, [operator] * self.k, [optimizer_result.x] * self.k
+                    initialized_ansatz_list,
+                    [operator] * self.k,
+                    [optimizer_result.x] * self.k,
                 )
                 .result()
                 .values
             )
 
         except Exception as exc:
-            raise AlgorithmError("The primitive job to evaluate the eigenvalues failed!") from exc
+            raise AlgorithmError(
+                "The primitive job to evaluate the eigenvalues failed!"
+            ) from exc
 
         result.cost_function_evals = optimizer_result.nfev
         result.optimal_point = optimizer_result.x
-        result.optimal_parameters = dict(zip(self.ansatz.parameters, optimizer_result.x))
+        result.optimal_parameters = dict(
+            zip(self.ansatz.parameters, optimizer_result.x)
+        )
         result.optimal_value = optimizer_result.fun
         result.optimizer_time = optimizer_time
         result.aux_operators_evaluated = aux_operators_evaluated
