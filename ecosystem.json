@@ -14,7 +14,7 @@
         "pytest"
     ],
     "styles_check_command": [
-        "pylint -rn ssvqe tests"
+        "pylint -rn ssvqe test"
     ],
     "coverages_check_command": [
         "coverage3 run -m pytest",
