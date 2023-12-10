@@ -10,6 +10,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+# This implementation is derived from Qiskit's VQE implementation.
+
 """The Subspace Search Variational Quantum Eigensolver algorithm.
 
 See https://arxiv.org/abs/1810.09434.
